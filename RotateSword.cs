@@ -11,7 +11,7 @@ public class RotateSword : MonoBehaviour
     bool swinging = false;
     //swinging angle
     private float currentAngle;
-    private bool swungLeft = true;
+    private bool swungLeft = false;
 
     // We need a variable to store the smoothed angle
     private float currentMouseAngle = 0f;
@@ -28,7 +28,7 @@ public class RotateSword : MonoBehaviour
         {
             swinging = true;
             timer = 0;
-            swungLeft = swungLeft ? false : true;
+            swungLeft = !swungLeft;
         }
 
         if (swinging)
@@ -55,7 +55,7 @@ public class RotateSword : MonoBehaviour
         }
 
         float targetMouseAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        currentMouseAngle = Mathf.LerpAngle(currentMouseAngle, targetMouseAngle, Time.deltaTime * 5f);
+        currentMouseAngle = Mathf.LerpAngle(currentMouseAngle, targetMouseAngle, Time.deltaTime * 15f);
 
         transform.rotation = Quaternion.Euler(0, 0, currentAngle + currentMouseAngle);
 
