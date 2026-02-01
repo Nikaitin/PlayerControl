@@ -75,12 +75,20 @@ public class EnemyScript : MonoBehaviour
         //stop before lunging
         body.linearVelocity = Vector2.zero;
 
+        float timeElapsed = 0f;
+
         Color originalColor = spriteRen.color;
+        while (timeElapsed < windUpTime)
+        {
+            float t = timeElapsed / windUpTime;
+            spriteRen.color = Color.Lerp(originalColor, Color.red, t);
+            timeElapsed += Time.deltaTime;
+            dir = (player.position - transform.position).normalized;
+            FacePlayer();
+
+            yield return null;
+        }
         spriteRen.color = Color.red;
-
-        yield return new WaitForSeconds(windUpTime);
-
-        dir = (player.position - transform.position).normalized;
 
         body.linearVelocity = dir * lungeSpeed;
 
