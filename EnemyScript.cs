@@ -81,14 +81,14 @@ public class EnemyScript : MonoBehaviour
         while (timeElapsed < windUpTime)
         {
             float t = timeElapsed / windUpTime;
-            spriteRen.color = Color.Lerp(originalColor, Color.red, t);
+            spriteRen.color = Color.Lerp(originalColor, Color.orange, t);
             timeElapsed += Time.deltaTime;
             dir = (player.position - transform.position).normalized;
             FacePlayer();
 
             yield return null;
         }
-        spriteRen.color = Color.red;
+        spriteRen.color = Color.orange;
 
         body.linearVelocity = dir * lungeSpeed;
 
