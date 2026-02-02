@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ public class EnemyScript : MonoBehaviour
     public float pathUpdateDelay = 0.2f;
     public float speed = 2f;
     private float playerDis;
+    public EnemyState currentState;
 
     [Header("Lunge Stats")]
     public float windUpTime = 0.5f; // "Stop a bit" duration
@@ -28,12 +30,15 @@ public class EnemyScript : MonoBehaviour
     public SpriteRenderer spriteRen; // For visual feedback (Flash Red)
     public Vector2 dir;
 
-
+    void Start()
+    {
+        currentState = EnemyState.Idle;
+    }
     void Update()
     {
         if (player == null) return;
         playerDis = Vector2.Distance(transform.position, player.position);
-        if (!isAttacking) Attack();
+        if (!isAttacking && (currentState != EnemyState.Knockback)) Attack();
     }
 
     private void FacePlayer()
@@ -105,5 +110,12 @@ public class EnemyScript : MonoBehaviour
 
         // Reset state so it can chase again
         isAttacking = false;
+    }
+
+
+    public enum EnemyState
+    {
+        Idle,
+        Knockback,
     }
 }
