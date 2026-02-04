@@ -156,7 +156,7 @@ public class LevelGeneration : MonoBehaviour
             }
         }
     }
-
+    //checking
     void DrawMap()  //creating the room at the assigned positions
     {
         foreach (Room room in rooms)
