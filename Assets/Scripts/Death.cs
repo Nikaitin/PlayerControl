@@ -21,5 +21,5 @@ public class Death : MonoBehaviour
             enabled = false;
         }
     }
-    //checking email
+
 }
