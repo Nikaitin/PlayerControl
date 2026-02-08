@@ -5,7 +5,7 @@ public class MapSpriteSelector : MonoBehaviour
     public Sprite spU, spD, spL, spR, spUD, spRL, spUR, spUL, spDR, spDL, spULD, spRUL, spDRU, spLDR, spUDLR;
     public bool up, down, left, right;
     public int type; //0: normal, 1: enter
-    public Color normalColor, enterColor;
+    public Color normalColor, enterColor, bossColor;
     Color mainColor;
     SpriteRenderer rend;
 
@@ -128,6 +128,7 @@ public class MapSpriteSelector : MonoBehaviour
     {
         if (type == 0) mainColor = normalColor;
         else if (type == 1) mainColor = enterColor;
+        else if (type == 2) mainColor = bossColor;
         rend.color = mainColor;
     }
 }

@@ -10,6 +10,7 @@ public class LevelGeneration : MonoBehaviour
     int gridSizeX, gridSizeY; //sizes of the grids in integers
     public int numORooms = 15;
     public GameObject MapSprite;  //access to the prefab that holds all the sprites of rooms to create
+    public GameObject portal;
 
     void Start()
     {
@@ -19,6 +20,7 @@ public class LevelGeneration : MonoBehaviour
         gridSizeX = Mathf.RoundToInt(worldSize.x);      //converts the size of world from vectors to integers to use
         gridSizeY = Mathf.RoundToInt(worldSize.y);
         CreateRooms();
+        CreateBossRoom();
         SetRoomDoors();
         DrawMap();
     }
@@ -33,9 +35,9 @@ public class LevelGeneration : MonoBehaviour
         //magic numbers
         float randomCompare = 0.2f, randomCompareStart = 0.2f, randomCompareEnd = 0.01f;
         //add rooms
-        for (int i = 0; i < numORooms - 1; i++) //create the next numORooms - 1 cause we already created the start room
+        for (int i = 0; i < numORooms - 2; i++) //create the next numORooms - 1 cause we already created the start room
         {
-            float randomPerc = i / ((float)numORooms - 1);  //percentage will be go from 0 to closer to 1 as loops go on
+            float randomPerc = i / ((float)numORooms - 2);  //percentage will be go from 0 to closer to 1 as loops go on
             randomCompare = Mathf.Lerp(randomCompareStart, randomCompareEnd, randomPerc); //grab a value between 0.2 to 0.01, earlier loops will be closer 0.2 and vice versa
             //grab new position avaiable to create room
             checkPos = NewPosition();
@@ -122,6 +124,52 @@ public class LevelGeneration : MonoBehaviour
         return checkingPos;
     }
 
+    void CreateBossRoom()
+    {
+        // 1. Create a copy of the list so we can sort it without messing up the original order
+        List<Vector2> potentialBossSpawns = new List<Vector2>(takenPositions);
+
+        // 2. Sort the list by distance from (0,0) - Furthest rooms first
+        potentialBossSpawns.Sort((a, b) => b.magnitude.CompareTo(a.magnitude));
+
+        // 3. Loop through rooms (starting from the furthest) to find a valid spot
+        foreach (Vector2 existingRoomPos in potentialBossSpawns)
+        {
+            // Check all 4 adjacent sides (Up, Down, Left, Right)
+            Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+
+            foreach (Vector2 dir in directions)
+            {
+                Vector2 targetPos = existingRoomPos + dir;
+
+                // Check A: Is this spot currently empty?
+                if (takenPositions.Contains(targetPos)) continue;
+
+                // Check B: Is it within the grid boundaries?
+                if (targetPos.x >= gridSizeX || targetPos.x < -gridSizeX ||
+                    targetPos.y >= gridSizeY || targetPos.y < -gridSizeY) continue;
+
+                // Check C: THE CRITICAL STEP
+                // If we place a room here, will it have only 1 neighbor? 
+                // (The neighbor being the 'existingRoomPos' we are branching off of)
+                if (NumberOfNeighbors(targetPos, takenPositions) == 1)
+                {
+                    // Found a valid spot! Create the Boss Room
+
+                    // Add to room array (Type 2 = Boss)
+                    rooms[(int)targetPos.x + gridSizeX, (int)targetPos.y + gridSizeY] = new Room(targetPos, 2);
+
+                    // Add to taken positions list
+                    takenPositions.Insert(0, targetPos);
+
+                    print("Boss Room Created at: " + targetPos + " connected to " + existingRoomPos);
+                    return; // Stop the function, we are done
+                }
+            }
+        }
+        print("Error: Could not find a valid spot for the Boss Room (map too crowded?)");
+    }
+
     int NumberOfNeighbors(Vector2 checkingPos, List<Vector2> usedPositions)
     {
         int ret = 0;
@@ -166,12 +214,23 @@ public class LevelGeneration : MonoBehaviour
             Vector2 drawPos = room.gridPos; //find the position
             drawPos.x *= size;
             drawPos.y *= size;
-            MapSpriteSelector mapper = Instantiate(MapSprite, drawPos, Quaternion.identity).GetComponent<MapSpriteSelector>();    //Actually create the room with the sprite it should be
+            GameObject newRoomObj = Instantiate(MapSprite, drawPos, Quaternion.identity);
+            MapSpriteSelector mapper = newRoomObj.GetComponent<MapSpriteSelector>();    //Actually create the room with the sprite it should be
             mapper.type = room.type;    //checking the type of sprite
             mapper.up = room.doorTop;
             mapper.down = room.doorBot;
             mapper.left = room.doorLeft;
             mapper.right = room.doorRight;
+
+            // 2. Get the Room Controller to set logic (NEW CODE)
+            EnemySpawn controller = newRoomObj.GetComponent<EnemySpawn>();
+
+            // Pass the boolean data to the controller
+            controller.hasDoor[0] = room.doorTop;   // Up
+            controller.hasDoor[1] = room.doorBot;   // Down
+            controller.hasDoor[2] = room.doorLeft;  // Left
+            controller.hasDoor[3] = room.doorRight; // Right
+            if (room.type == 2) Instantiate(portal, drawPos, Quaternion.identity);
         }
     }
 }
